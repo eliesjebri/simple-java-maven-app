@@ -33,7 +33,11 @@ pipeline {
             agent {
               docker {
                image 'tomcat:9-jre11-slim'
+               args '-v target/:/usr/local/tomcat/webapps'
               }
+            }
+            steps {
+                '''
             }
         }
     }
