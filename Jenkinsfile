@@ -97,8 +97,9 @@ pipeline {
                 '''
 
                 sh '''
-                echo "Construction Docker..."
-                docker build -t simple-java-maven-app:latest .
+                echo "Construction de l’image avec tags : latest et ${shortTag}"
+                docker build -t ${REGISTRY_URL}/${IMAGE_NAME}:latest -t ${REGISTRY_URL}/${IMAGE_NAME}:${shortTag} .
+                docker images | grep ${IMAGE_NAME}
                 '''
             }
         }
