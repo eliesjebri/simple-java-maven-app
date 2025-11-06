@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        REGISTRY_URL = "local"
+        REGISTRY_URL = "eliesjebri"
         IMAGE_NAME   = "simple-java-maven-app"
     }
     stages {
