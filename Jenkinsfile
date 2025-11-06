@@ -1,5 +1,9 @@
 pipeline {
     agent any
+    environment {
+        REGISTRY_URL = "local"
+        IMAGE_NAME   = "simple-java-maven-app"
+    }
     stages {
 
         stage('Build') {
@@ -97,8 +101,8 @@ pipeline {
                 '''
 
                 sh '''
-                echo "Construction de l’image avec tags : latest et ${shortTag}"
-                docker build -t ${REGISTRY_URL}/${IMAGE_NAME}:latest -t ${REGISTRY_URL}/${IMAGE_NAME}:${shortTag} .
+                echo "Construction de l’image avec tags : latest et "build-${env.BUILD_NUMBER}""
+                docker build -t ${IMAGE_NAME}:latest -t ${REGISTRY_URL}/${IMAGE_NAME}:"build-${env.BUILD_NUMBER}" .
                 docker images | grep ${IMAGE_NAME}
                 '''
             }
