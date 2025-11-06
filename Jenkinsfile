@@ -1,12 +1,13 @@
 pipeline {
     stages {
+
         stage('Build') {
-                agent {
-        docker {
-            image 'maven:3.9.9-eclipse-temurin-21'
-            args '-v /var/lib/jenkins/caches/maven:/.m2'
-        }
-    }
+            agent {
+                docker {
+                    image 'maven:3.9.9-eclipse-temurin-21'
+                    args '-v /var/lib/jenkins/caches/maven:/.m2'
+                }
+            }
             steps {
                 echo 'Compilation du projet Maven...'
                 sh 'mvn clean package -DskipTests'
@@ -16,14 +17,14 @@ pipeline {
         }
 
         stage('Parallel Tasks') {
-                agent {
-        docker {
-            image 'maven:3.9.9-eclipse-temurin-21'
-            args '-v /var/lib/jenkins/caches/maven:/.m2'
-        }
-    }
             parallel {
                 stage('Unit Tests') {
+                    agent {
+                        docker {
+                            image 'maven:3.9.9-eclipse-temurin-21'
+                            args '-v /var/lib/jenkins/caches/maven:/.m2'
+                        }
+                    }
                     steps {
                         echo 'Exécution des tests unitaires...'
                         sh 'mvn test'
@@ -36,6 +37,12 @@ pipeline {
                 }
 
                 stage('Static Analysis') {
+                    agent {
+                        docker {
+                            image 'maven:3.9.9-eclipse-temurin-21'
+                            args '-v /var/lib/jenkins/caches/maven:/.m2'
+                        }
+                    }
                     steps {
                         echo 'Analyse statique avec Checkstyle...'
                         sh 'mvn checkstyle:check || true'
@@ -48,6 +55,12 @@ pipeline {
                 }
 
                 stage('Code Coverage') {
+                    agent {
+                        docker {
+                            image 'maven:3.9.9-eclipse-temurin-21'
+                            args '-v /var/lib/jenkins/caches/maven:/.m2'
+                        }
+                    }
                     steps {
                         echo 'Génération du rapport de couverture JaCoCo...'
                         sh 'mvn verify'
@@ -69,27 +82,26 @@ pipeline {
         }
 
         stage('Docker Image') {
-            // Exécution sur l’hôte Jenkins (où Docker CLI est disponible)
             agent any
-steps {
-    echo 'Construction de l’image Docker à partir du JAR archivé (stash)...'
-    unstash 'built-jar'
+            steps {
+                echo 'Construction de l’image Docker à partir du JAR archivé (stash)...'
+                unstash 'built-jar'
 
-    sh '''
-    echo "Diagnostic avant build Docker"
-    echo "Utilisateur Jenkins: $(whoami)"
-    echo "Répertoire courant: $(pwd)"
-    which sh || echo "Shell introuvable"
-    ls -lah
-    '''
+                sh '''
+                echo "Diagnostic avant build Docker"
+                echo "Utilisateur Jenkins: $(whoami)"
+                echo "Répertoire courant: $(pwd)"
+                which sh || echo "Shell introuvable"
+                ls -lah
+                '''
 
-    sh '''
-    echo "Construction Docker..."
-    docker build -t simple-java-maven-app:latest .
-    '''
-}
+                sh '''
+                echo "Construction Docker..."
+                docker build -t simple-java-maven-app:latest .
+                '''
+            }
         }
-    } // ← fermeture du bloc stages
+    }
 
     post {
         always {
