@@ -101,8 +101,8 @@ pipeline {
                 '''
 
                 sh '''
-                echo "Construction de l’image avec tags : latest et "build-${env.BUILD_NUMBER}""
-                docker build -t ${IMAGE_NAME}:latest -t ${REGISTRY_URL}/${IMAGE_NAME}:"build-${env.BUILD_NUMBER}" .
+                echo "Construction de l image avec tags : latest et build-$BUILD_NUMBER"
+                docker build -t ${IMAGE_NAME}:latest -t ${REGISTRY_URL}/${IMAGE_NAME}:"build-$BUILD_NUMBER" .
                 docker images | grep ${IMAGE_NAME}
                 '''
             }
