@@ -1,19 +1,21 @@
 package com.mycompany.app;
 
 /**
- * Hello world!
+ * Hello world with Docker environment support.
  */
 public class App {
-
-    private static final String MESSAGE = "Hello World!";
 
     public App() {}
 
     public static void main(String[] args) {
-        System.out.println(MESSAGE);
-    }
+        // On lit la variable d'environnement APP_MESSAGE (si elle existe)
+        String message = System.getenv("APP_MESSAGE");
 
-    public String getMessage() {
-        return MESSAGE;
+        // Si aucune variable n'est fournie, on garde la valeur par défaut
+        if (message == null || message.isBlank()) {
+            message = "Hello World!";
+        }
+
+        System.out.println(message);
     }
 }
