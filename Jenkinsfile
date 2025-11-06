@@ -64,6 +64,8 @@ pipeline {
         }
 
         stage('Docker Image') {
+            // Exécution sur l’hôte Jenkins (où Docker CLI est disponible)
+            agent any
             steps {
                 echo 'Construction de l’image Docker à partir du JAR archivé...'
 
