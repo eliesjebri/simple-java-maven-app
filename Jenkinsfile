@@ -6,54 +6,74 @@ pipeline {
         }
     }
 
-    environment {
-        APP_NAME = "simple-java-maven-app"
-    }
     stages {
+
         stage('Build') {
             steps {
-                echo "Build dans docker container"
-                sh 'ls -la'              // pour vérifier le contenu du workspace
-                sh 'mvn -B -DskipTests clean package'
+                echo 'Compilation du projet Maven...'
+                sh 'mvn clean package -DskipTests'
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
         }
 
-        stage('Test and Coverage') {
-            steps {
-				echo 'Exécution des tests JUnit...'
-				// Génère les rapports dans target/surefire-reports
-                sh 'mvn -B test'
-            }
-            post {
-                always {
-                    echo 'Publication des rapports...'
-                    junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
-
-                    // Publication HTML du rapport JaCoCo
-                    publishHTML([
-                        reportDir: 'target/site/jacoco',
-                        reportFiles: 'index.html',
-                        reportName: 'JaCoCo Code Coverage',
-                        allowMissing: true,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true
-                    ])
+        stage('Parallel Tasks') {
+            parallel {
+                stage('Unit Tests') {
+                    steps {
+                        echo 'Exécution des tests unitaires...'
+                        sh 'mvn test'
+                    }
+                    post {
+                        always {
+                            junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
+                        }
+                    }
                 }
-            }	
-        }
 
-        stage('Archive_Artifacts') {
-            steps {
-                archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
+                stage('Static Analysis') {
+                    steps {
+                        echo '🔍 Analyse statique avec Checkstyle...'
+                        sh 'mvn checkstyle:check || true'
+                    }
+                    post {
+                        always {
+                            echo 'Analyse terminée (voir logs Jenkins).'
+                        }
+                    }
+                }
+
+                stage('Code Coverage') {
+                    steps {
+                        echo 'Génération du rapport de couverture JaCoCo...'
+                        sh 'mvn verify'
+                    }
+                    post {
+                        always {
+                            publishHTML([
+                                reportDir: 'target/site/jacoco',
+                                reportFiles: 'index.html',
+                                reportName: 'JaCoCo Code Coverage',
+                                allowMissing: true,
+                                alwaysLinkToLastBuild: true,
+                                keepAll: true
+                            ])
+                        }
+                    }
+                }
             }
         }
     }
 
     post {
-        always { 
-           echo "Nettoyage du workspace..."
-           cleanWs() }
-        success { echo ' Build and test completed successfully! ' }
-        failure { echo ' Build failed.' }
+        always {
+            echo "Nettoyage du workspace..."
+            cleanWs()
+        }
+        success {
+            echo "Build, tests et analyses parallèles terminés avec succès !"
+        }
+        failure {
+            echo "Une ou plusieurs tâches ont échoué."
+        }
     }
 }
