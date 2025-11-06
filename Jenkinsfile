@@ -13,6 +13,7 @@ pipeline {
                 echo 'Compilation du projet Maven...'
                 sh 'mvn clean package -DskipTests'
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                stash includes: 'target/*.jar', name: 'built-jar'
             }
         }
 
@@ -67,15 +68,10 @@ pipeline {
             // Exécution sur l’hôte Jenkins (où Docker CLI est disponible)
             agent any
             steps {
-                echo 'Construction de l’image Docker à partir du JAR archivé...'
+                echo 'Construction de l’image Docker à partir du JAR archivé (stash)...'
 
                 // 1️ Récupérer le jar archivé du stage "Build"
-                copyArtifacts(
-                    projectName: env.JOB_NAME,          // même job
-                    selector: specific("${env.BUILD_NUMBER}"), // depuis ce build
-                    filter: 'target/*.jar'
-                )
-
+                unstash 'built-jar'
                 // 2️ Vérifier que le jar est bien récupéré
                 sh 'ls -lh target/*.jar'
 
