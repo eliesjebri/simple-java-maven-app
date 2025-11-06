@@ -1,14 +1,12 @@
 pipeline {
-    agent {
+    stages {
+        stage('Build') {
+                agent {
         docker {
             image 'maven:3.9.9-eclipse-temurin-21'
             args '-v /var/lib/jenkins/caches/maven:/.m2'
         }
     }
-
-    stages {
-
-        stage('Build') {
             steps {
                 echo 'Compilation du projet Maven...'
                 sh 'mvn clean package -DskipTests'
@@ -18,6 +16,12 @@ pipeline {
         }
 
         stage('Parallel Tasks') {
+                agent {
+        docker {
+            image 'maven:3.9.9-eclipse-temurin-21'
+            args '-v /var/lib/jenkins/caches/maven:/.m2'
+        }
+    }
             parallel {
                 stage('Unit Tests') {
                     steps {
