@@ -18,7 +18,7 @@ pipeline {
             }
         }
 
-        stage('Test') {
+        stage('Test and Coverage') {
             steps {
 				echo 'Exécution des tests JUnit...'
 				// Génère les rapports dans target/surefire-reports
@@ -26,10 +26,20 @@ pipeline {
             }
             post {
                 always {
-                    echo 'Publication des rapports de tests'
+                    echo 'Publication des rapports...'
                     junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
+
+                    // Publication HTML du rapport JaCoCo
+                    publishHTML([
+                        reportDir: 'target/site/jacoco',
+                        reportFiles: 'index.html',
+                        reportName: 'JaCoCo Code Coverage',
+                        allowMissing: true,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true
+                    ])
                 }
-            }			
+            }	
         }
 
         stage('Archive_Artifacts') {
