@@ -12,16 +12,24 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                echo "Build inside docker container"
+                echo "Build dans docker container"
                 sh 'ls -la'              // pour vérifier le contenu du workspace
-                sh 'mvn -B clean package'
+                sh 'mvn -B -DskipTests clean package'
             }
         }
 
         stage('Test') {
             steps {
-                sh 'mvn test'
+				echo 'Exécution des tests JUnit...'
+				// Génère les rapports dans target/surefire-reports
+                sh 'mvn -B test'
             }
+            post {
+                always {
+                    echo 'Publication des rapports de tests'
+                    junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
+                }
+            }			
         }
 
         stage('Archive_Artifacts') {
