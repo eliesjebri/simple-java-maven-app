@@ -1,7 +1,7 @@
 pipeline {
     agent {
         docker {
-            image 'maven:3.9.9-eclipse-temurin-21'
+            image 'eclipse-temurin:21-jdk-alpine'
             args '-v /var/lib/jenkins/caches/maven:/root/.m2'
         }
     }
