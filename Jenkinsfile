@@ -67,30 +67,23 @@ pipeline {
         stage('Docker Image') {
             // Exécution sur l’hôte Jenkins (où Docker CLI est disponible)
             agent any
-            steps {
-                echo 'Construction de l’image Docker à partir du JAR archivé (stash)...'
+steps {
+    echo 'Construction de l’image Docker à partir du JAR archivé (stash)...'
+    unstash 'built-jar'
 
-                // 1️ Récupérer le jar archivé du stage "Build"
-                unstash 'built-jar'
-                // 2️ Vérifier que le jar est bien récupéré
-                sh 'ls -lh target/*.jar'
+    sh '''
+    echo "Diagnostic avant build Docker"
+    echo "Utilisateur Jenkins: $(whoami)"
+    echo "Répertoire courant: $(pwd)"
+    which sh || echo "Shell introuvable"
+    ls -lah
+    '''
 
-                // 3️ Construire l’image Docker
-                script {
-                    def shortTag = "build-${env.BUILD_NUMBER}"
-                    
-                    sh """
-                    echo 'JAR récupéré :'
-                    ls -lh target/*.jar
-
-                    echo 'Construction de l’image avec tags : latest et ${shortTag}'
-                    docker build -t simple-java-maven-app:latest -t simple-java-maven-app:${shortTag} .
-
-                    echo 'Images construites :'
-                    docker images | grep simple-java-maven-app
-                    """
-                }
-            }
+    sh '''
+    echo "Construction Docker..."
+    docker build -t simple-java-maven-app:latest .
+    '''
+}
         }
     } // ← fermeture du bloc stages
 
